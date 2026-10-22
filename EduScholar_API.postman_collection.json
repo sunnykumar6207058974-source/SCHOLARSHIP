@@ -1,0 +1,369 @@
+{
+  "info": {
+    "_postman_id": "eduscholar-scholarship-api-v1",
+    "name": "EduScholar Discovery Portal API",
+    "description": "Comprehensive Postman Collection for EduScholar Scholarship Platform inspired by Buddy4Study. Covers Auth, Scholarships, Eligibility Matcher, Student Dashboard, Applications, and Admin Operations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dev Sharma\",\n  \"email\": \"dev.sharma@example.com\",\n  \"password\": \"Secret@123\",\n  \"mobile\": \"9876543210\",\n  \"education_level\": \"Graduation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "  pm.collectionVariables.set('authToken', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@eduscholar.org\",\n  \"password\": \"Student@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "  pm.collectionVariables.set('adminToken', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@eduscholar.org\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scholarships",
+      "item": [
+        {
+          "name": "List Scholarships (Filter: Live, Education, Gender)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scholarships?tab=live&education_level=Graduation&gender=All&page=1&limit=9",
+              "host": ["{{baseUrl}}"],
+              "path": ["scholarships"],
+              "query": [
+                { "key": "tab", "value": "live" },
+                { "key": "education_level", "value": "Graduation" },
+                { "key": "gender", "value": "All" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "9" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Scholarships",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scholarships/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["scholarships", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Get Categories with Counts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scholarships/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["scholarships", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Scholarship Detail by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scholarships/reliance-foundation-ug-scholarships-2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["scholarships", "reliance-foundation-ug-scholarships-2026"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eligibility Checker",
+      "item": [
+        {
+          "name": "Check Eligibility (Rule Engine)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_education_level\": \"Graduation\",\n  \"marks_percentage\": 82.5,\n  \"family_annual_income\": 250000,\n  \"gender\": \"Female\",\n  \"category\": \"General\",\n  \"state_domicile\": \"Maharashtra\",\n  \"is_physically_challenged\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/eligibility/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["eligibility", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Student Profile & Dashboard",
+      "item": [
+        {
+          "name": "Get Full Profile & Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile Information",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks_percentage\": 87.5,\n  \"current_course\": \"B.Tech Artificial Intelligence\",\n  \"family_annual_income\": 200000,\n  \"state_domicile\": \"Maharashtra\",\n  \"district\": \"Pune\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Save Scholarship (Bookmark)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/profile/save-scholarship/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "save-scholarship", "2"]
+            }
+          }
+        },
+        {
+          "name": "Get Saved Scholarships",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/profile/saved",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "saved"]
+            }
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/profile/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "notifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "Apply for Scholarship",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarship_id\": 2,\n  \"statement_of_purpose\": \"I am passionate about research in technology and come from a modest economic background. This scholarship will alleviate tuition costs.\",\n  \"current_institute\": \"Pune Institute of Computer Technology\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications", "apply"]
+            }
+          }
+        },
+        {
+          "name": "Get My Applications (Status Tracking)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/applications/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Operations",
+      "item": [
+        {
+          "name": "Get Admin Overview Statistics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "stats"]
+            }
+          }
+        },
+        {
+          "name": "List All Applications (Admin Review)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "applications"]
+            }
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"reviewer_notes\": \"Applicant marksheet verified and income certificate authenticated.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "applications", "1", "status"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

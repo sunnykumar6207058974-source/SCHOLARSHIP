@@ -1,0 +1,20 @@
+{
+  "name": "eduscholar-backend",
+  "version": "1.0.0",
+  "description": "Backend API for EduScholar Scholarship Discovery Platform inspired by Buddy4Study",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node database/initDb.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.12.0",
+    "better-sqlite3": "^11.8.1"
+  }
+}
