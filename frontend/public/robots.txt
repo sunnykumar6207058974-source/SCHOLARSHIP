@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://scholarship-azure-chi.vercel.app/sitemap.xml
