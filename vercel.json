@@ -4,7 +4,7 @@
   "installCommand": "npm --prefix frontend install",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
