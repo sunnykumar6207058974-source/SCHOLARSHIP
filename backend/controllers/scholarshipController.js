@@ -3,11 +3,12 @@ const db = require('../config/db');
 exports.getScholarships = async (req, res) => {
   try {
     const {
-      tab = 'live', // live, upcoming, always_open, all
+      tab = 'live', // live, history, upcoming, always_open, all
       search = '',
       education_level = '',
       state = '',
       scholarship_type = '',
+      scheme_authority_type = '',
       category = '',
       gender = '',
       min_marks = '',
@@ -23,10 +24,18 @@ exports.getScholarships = async (req, res) => {
     // Filter by tab
     if (tab === 'live') {
       queryConditions.push("(s.status = 'live' AND (s.deadline >= DATE('now') OR s.is_always_open = 1 OR s.deadline IS NULL))");
+    } else if (tab === 'history' || tab === 'closed') {
+      queryConditions.push("(s.status = 'closed' OR (s.deadline < DATE('now') AND s.is_always_open = 0))");
     } else if (tab === 'upcoming') {
       queryConditions.push("s.status = 'upcoming'");
     } else if (tab === 'always_open') {
       queryConditions.push('s.is_always_open = 1');
+    }
+
+    // Filter by Scheme Authority Type (Central vs State vs Corporate)
+    if (scheme_authority_type && scheme_authority_type !== 'All') {
+      queryConditions.push('s.scheme_authority_type = ?');
+      params.push(scheme_authority_type);
     }
 
     // Keyword search
@@ -117,8 +126,10 @@ exports.getScholarships = async (req, res) => {
       SELECT DISTINCT
         s.id, s.title, s.slug, s.provider_name, s.provider_logo,
         s.award_amount, s.award_amount_value, s.deadline, s.is_always_open,
-        s.status, s.scholarship_type, s.education_level, s.state_domicile,
+        s.status, s.scholarship_type, s.scheme_authority_type, s.education_level, s.state_domicile,
         s.brief_description, s.featured, s.created_at,
+        s.previous_year_cutoff, s.last_year_disbursed_amount, s.total_beneficiaries_last_year,
+        s.expected_next_cycle, s.history_summary,
         c.name as category_name, c.slug as category_slug,
         ec.min_marks_percentage, ec.max_family_income, ec.applicable_gender, ec.additional_rules
       FROM scholarships s
@@ -258,5 +269,57 @@ exports.getScholarshipDetail = async (req, res) => {
   } catch (err) {
     console.error('Error fetching scholarship detail:', err);
     res.status(500).json({ success: false, message: 'Server error fetching scholarship details.' });
+  }
+};
+
+exports.subscribeAlert = async (req, res) => {
+  try {
+    const { idOrSlug } = req.params;
+    const { email, mobile } = req.body;
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
+    }
+
+    const userId = req.user ? req.user.id : null;
+
+    // Find scholarship
+    const isNumeric = /^\d+$/.test(idOrSlug);
+    const cond = isNumeric ? 'id = ?' : 'slug = ?';
+    const { rows: schRows } = await db.query(`SELECT id, title, expected_next_cycle FROM scholarships WHERE ${cond}`, [idOrSlug]);
+
+    if (schRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Scholarship program not found.' });
+    }
+
+    const sch = schRows[0];
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Check if already subscribed
+    const { rows: existing } = await db.query(
+      'SELECT id FROM scholarship_alerts WHERE scholarship_id = ? AND email = ?',
+      [sch.id, cleanEmail]
+    );
+
+    if (existing.length > 0) {
+      return res.json({
+        success: true,
+        already_subscribed: true,
+        message: `You are already registered for alerts! We will notify you at ${cleanEmail} as soon as applications open for ${sch.expected_next_cycle || 'the next cycle'}.`
+      });
+    }
+
+    await db.query(
+      'INSERT INTO scholarship_alerts (scholarship_id, user_id, email, mobile) VALUES (?, ?, ?, ?)',
+      [sch.id, userId, cleanEmail, mobile ? mobile.trim() : null]
+    );
+
+    res.json({
+      success: true,
+      message: `Alert registered successfully! We will email you at ${cleanEmail} as soon as "${sch.title}" opens for ${sch.expected_next_cycle || 'the next cycle'}.`
+    });
+  } catch (err) {
+    console.error('Error registering alert:', err);
+    res.status(500).json({ success: false, message: 'Failed to register alert.' });
   }
 };

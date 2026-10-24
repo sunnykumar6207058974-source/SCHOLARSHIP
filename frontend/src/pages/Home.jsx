@@ -20,10 +20,14 @@ import {
   Globe,
   Star,
   Building,
-  Compass
+  Compass,
+  History,
+  Bell,
+  Building2
 } from 'lucide-react';
 import ScholarshipCard from '../components/ScholarshipCard';
 import ApplyModal from '../components/ApplyModal';
+import NotifyModal from '../components/NotifyModal';
 import { api } from '../services/api';
 
 export default function Home() {
@@ -39,9 +43,11 @@ export default function Home() {
   const [heroEducation, setHeroEducation] = useState('All');
   const [heroState, setHeroState] = useState('All India');
 
-  // Application Modal
+  // Application & Notify Modals
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [notifyScholarship, setNotifyScholarship] = useState(null);
+  const [notifyModalOpen, setNotifyModalOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -307,6 +313,92 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 3 Pillars of EduScholar Unified Ecosystem */}
+      <section style={{ backgroundColor: '#f8fafc', padding: '54px 0 30px 0', borderBottom: '1px solid var(--slate-200)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 36px auto' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary-600)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              The 3-Pillar Ecosystem
+            </span>
+            <h2 style={{ fontSize: '2rem', color: 'var(--primary-800)', fontWeight: 800, marginTop: '6px', letterSpacing: '-0.02em' }}>
+              All Indian Scholarships in One Single Place
+            </h2>
+            <p style={{ color: 'var(--slate-600)', fontSize: '0.96rem', marginTop: '8px', lineHeight: 1.6 }}>
+              No more hopping across 20 different state and government websites. Discover live schemes, examine last year selection cutoffs, and subscribe to automatic opening alerts.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px'
+          }}>
+            {/* Pillar 1 Card */}
+            <div className="card card-hover" style={{ padding: '28px', backgroundColor: 'var(--white)', border: '1.5px solid #dbeafe', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <Landmark size={24} />
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Pillar 1 • Complete Hub
+              </span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-800)', margin: '6px 0 10px 0' }}>
+                Central, State & CSR Directory
+              </h3>
+              <p style={{ fontSize: '0.88rem', color: 'var(--slate-600)', lineHeight: 1.6, flex: 1 }}>
+                From National NSP schemes to State Portals (UP, Bihar, Maharashtra, Rajasthan, Karnataka) and Corporate CSR Giants (Tata, Reliance, HDFC, Infosys).
+              </p>
+              <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--slate-100)' }}>
+                <Link to="/scholarships?tab=all" style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--primary-700)', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+                  Explore All-India Directory <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Pillar 2 Card */}
+            <div className="card card-hover" style={{ padding: '28px', backgroundColor: 'var(--white)', border: '1.5px solid #dcfce7', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#f0fdf4', color: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <Clock size={24} />
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Pillar 2 • Live Schemes
+              </span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-800)', margin: '6px 0 10px 0' }}>
+                Live & Active Opportunities
+              </h3>
+              <p style={{ fontSize: '0.88rem', color: 'var(--slate-600)', lineHeight: 1.6, flex: 1 }}>
+                Real-time deadline countdowns, active schemes with direct apply triggers, instant 100% eligibility score matching, and verified application checklists.
+              </p>
+              <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--slate-100)' }}>
+                <Link to="/scholarships?tab=live" style={{ fontSize: '0.88rem', fontWeight: 700, color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+                  Browse Live Now Schemes <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Pillar 3 Card */}
+            <div className="card card-hover" style={{ padding: '28px', backgroundColor: 'var(--white)', border: '1.5px solid #ffedd5', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#fff7ed', color: '#c2410c', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <History size={24} />
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Pillar 3 • History & Alerts
+              </span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-800)', margin: '6px 0 10px 0' }}>
+                Last Year Cutoffs & Cycle Alerts
+              </h3>
+              <p style={{ fontSize: '0.88rem', color: 'var(--slate-600)', lineHeight: 1.6, flex: 1 }}>
+                Inspect previous year cutoffs, total funds disbursed, beneficiary numbers, and click "Notify Me" to get alerts when closed schemes re-open for the next session.
+              </p>
+              <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--slate-100)' }}>
+                <Link to="/scholarships?tab=history" style={{ fontSize: '0.88rem', fontWeight: 700, color: '#c2410c', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+                  Browse Past Year History <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 3. Featured & Trending Scholarships */}
       <section style={{ padding: '65px 0' }}>
         <div className="container">
@@ -349,6 +441,10 @@ export default function Home() {
                   key={sch.id}
                   scholarship={sch}
                   onApply={handleOpenApply}
+                  onNotify={(s) => {
+                    setNotifyScholarship(s);
+                    setNotifyModalOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -650,6 +746,13 @@ export default function Home() {
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
         scholarship={selectedScholarship}
+      />
+
+      {/* Cycle Alert Notification Modal */}
+      <NotifyModal
+        isOpen={notifyModalOpen}
+        onClose={() => setNotifyModalOpen(false)}
+        scholarship={notifyScholarship}
       />
 
       {/* Responsive Styles for Home */}

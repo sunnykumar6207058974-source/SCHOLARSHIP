@@ -16,6 +16,7 @@ import {
 import FilterSidebar from '../components/FilterSidebar';
 import ScholarshipCard from '../components/ScholarshipCard';
 import ApplyModal from '../components/ApplyModal';
+import NotifyModal from '../components/NotifyModal';
 import { api } from '../services/api';
 
 export default function Scholarships() {
@@ -27,6 +28,7 @@ export default function Scholarships() {
   const initialEducation = searchParams.get('education_level') || '';
   const initialState = searchParams.get('state') || '';
   const initialType = searchParams.get('scholarship_type') || '';
+  const initialAuthority = searchParams.get('scheme_authority_type') || '';
   const initialCategory = searchParams.get('category') || '';
   const initialGender = searchParams.get('gender') || '';
   const initialMinMarks = searchParams.get('min_marks') || '';
@@ -40,6 +42,7 @@ export default function Scholarships() {
     education_level: initialEducation,
     state: initialState,
     scholarship_type: initialType,
+    scheme_authority_type: initialAuthority,
     category: initialCategory,
     gender: initialGender,
     min_marks: initialMinMarks,
@@ -55,9 +58,11 @@ export default function Scholarships() {
   const [error, setError] = useState(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Apply Modal state
+  // Modals state
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [notifyScholarship, setNotifyScholarship] = useState(null);
+  const [notifyModalOpen, setNotifyModalOpen] = useState(false);
 
   // Fetch scholarships when filters change
   useEffect(() => {
@@ -104,6 +109,7 @@ export default function Scholarships() {
       education_level: '',
       state: '',
       scholarship_type: '',
+      scheme_authority_type: '',
       category: '',
       gender: '',
       min_marks: '',
@@ -126,9 +132,15 @@ export default function Scholarships() {
     setApplyModalOpen(true);
   };
 
+  const handleOpenNotify = (sch) => {
+    setNotifyScholarship(sch);
+    setNotifyModalOpen(true);
+  };
+
   // Count active filter tags
   const activeFilterTags = [];
   if (filters.search) activeFilterTags.push({ key: 'search', label: `Search: "${filters.search}"` });
+  if (filters.scheme_authority_type) activeFilterTags.push({ key: 'scheme_authority_type', label: `Authority: ${filters.scheme_authority_type}` });
   if (filters.education_level && filters.education_level !== 'All') activeFilterTags.push({ key: 'education_level', label: `Level: ${filters.education_level}` });
   if (filters.state && filters.state !== 'All India') activeFilterTags.push({ key: 'state', label: `State: ${filters.state}` });
   if (filters.scholarship_type && filters.scholarship_type !== 'All') activeFilterTags.push({ key: 'scholarship_type', label: `Type: ${filters.scholarship_type}` });
@@ -151,42 +163,45 @@ export default function Scholarships() {
             Home / Scholarships
           </div>
           <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--primary-800)', letterSpacing: '-0.02em' }}>
-            Discover Scholarships & Grants in India 2026
+            All India Scholarship Hub & Historical Archive
           </h1>
           <p style={{ color: 'var(--slate-600)', fontSize: '0.96rem', marginTop: '4px' }}>
-            Browse verified corporate CSR initiatives, central & state government grants, and international fellowships.
+            Central Govt (NSP), State Portals (UP, Bihar, MH, WB), Corporate CSR Grants, and Last Year Cutoffs — all in one single place.
           </p>
         </div>
 
-        {/* Tab Navigation: Live / Upcoming / Always Open / All */}
+        {/* Tab Navigation: Live / History / Upcoming / Always Open / All */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '2px solid var(--slate-200)',
-          marginBottom: '24px',
+          marginBottom: '16px',
           flexWrap: 'wrap',
           gap: '12px'
         }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', maxWidth: '100%' }}>
             {[
-              { id: 'live', label: 'Live Scholarships' },
-              { id: 'upcoming', label: 'Upcoming Schemes' },
-              { id: 'always_open', label: 'Always Open / Rolling' },
-              { id: 'all', label: 'All Schemes' }
+              { id: 'live', label: '🟢 Live Scholarships' },
+              { id: 'history', label: '📜 Past Year History & Archive' },
+              { id: 'upcoming', label: '⏳ Upcoming Schemes' },
+              { id: 'always_open', label: '🔄 Always Open' },
+              { id: 'all', label: '🌐 All Indian Schemes' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 style={{
-                  padding: '12px 18px',
+                  padding: '12px 16px',
                   fontWeight: 700,
-                  fontSize: '0.94rem',
+                  fontSize: '0.92rem',
+                  whiteSpace: 'nowrap',
                   color: filters.tab === tab.id ? 'var(--primary-700)' : 'var(--slate-500)',
                   borderBottom: filters.tab === tab.id ? '3px solid var(--accent-orange)' : '3px solid transparent',
                   marginBottom: '-2px',
                   transition: 'all 0.2s',
-                  background: 'none'
+                  background: 'none',
+                  cursor: 'pointer'
                 }}
               >
                 {tab.label}
@@ -204,6 +219,46 @@ export default function Scholarships() {
               <SlidersHorizontal size={15} /> Filters {activeFilterTags.length > 0 && `(${activeFilterTags.length})`}
             </button>
           </div>
+        </div>
+
+        {/* Authority Type Quick Pills (Pillar 1: All India at One Place) */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '22px',
+          overflowX: 'auto',
+          paddingBottom: '4px'
+        }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+            Portal Type:
+          </span>
+          {[
+            { id: '', label: 'All Portals' },
+            { id: 'Central Government', label: '🇮🇳 Central Govt / NSP' },
+            { id: 'State Government', label: '🏛️ State Portals (UP, Bihar, Maharashtra, WB...)' },
+            { id: 'Corporate / CSR', label: '🏢 Corporate CSR (Tata, Reliance, HDFC, Infosys)' }
+          ].map((auth) => (
+            <button
+              key={auth.id}
+              onClick={() => setFilters(prev => ({ ...prev, scheme_authority_type: auth.id, page: 1 }))}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                border: '1.5px solid',
+                borderColor: filters.scheme_authority_type === auth.id ? 'var(--primary-600)' : 'var(--slate-200)',
+                backgroundColor: filters.scheme_authority_type === auth.id ? '#eff6ff' : 'var(--white)',
+                color: filters.scheme_authority_type === auth.id ? '#1d4ed8' : 'var(--slate-700)',
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+            >
+              {auth.label}
+            </button>
+          ))}
         </div>
 
         {/* Active Filter Chips Bar */}
@@ -353,6 +408,7 @@ export default function Scholarships() {
                     key={sch.id}
                     scholarship={sch}
                     onApply={handleOpenApply}
+                    onNotify={handleOpenNotify}
                   />
                 ))}
               </div>
@@ -418,6 +474,13 @@ export default function Scholarships() {
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
         scholarship={selectedScholarship}
+      />
+
+      {/* Cycle Alert Notification Modal */}
+      <NotifyModal
+        isOpen={notifyModalOpen}
+        onClose={() => setNotifyModalOpen(false)}
+        scholarship={notifyScholarship}
       />
 
       {/* Responsive CSS */}

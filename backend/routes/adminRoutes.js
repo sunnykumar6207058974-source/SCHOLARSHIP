@@ -14,5 +14,7 @@ router.delete('/scholarships/:id', adminController.deleteScholarship);
 router.get('/applications', adminController.getAdminApplications);
 router.put('/applications/:id/status', adminController.updateApplicationStatus);
 router.get('/users', adminController.getAdminUsers);
+router.post('/sync-portals', adminController.syncGovernmentPortals);
+router.get('/crawler-status', adminController.getPortalCrawlerStatus);
 
 module.exports = router;

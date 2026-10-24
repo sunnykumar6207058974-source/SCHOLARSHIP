@@ -15,9 +15,14 @@ import {
   HelpCircle,
   ShieldCheck,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Bell,
+  History,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import ApplyModal from '../components/ApplyModal';
+import NotifyModal from '../components/NotifyModal';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
@@ -32,6 +37,7 @@ export default function ScholarshipDetail() {
   const [isSaved, setIsSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [notifyModalOpen, setNotifyModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   useEffect(() => {
@@ -398,6 +404,109 @@ export default function ScholarshipDetail() {
               </div>
             </div>
 
+            {/* Section: Historical Trends & Selection Archive (Pillar 3) */}
+            <div className="card" style={{ padding: '28px', marginBottom: '24px', borderLeft: '4px solid var(--accent-orange)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <History size={22} color="var(--primary-700)" />
+                  <h2 style={{ fontSize: '1.28rem', color: 'var(--primary-800)', fontWeight: 700, margin: 0 }}>
+                    Previous Year Selection Trends & History
+                  </h2>
+                </div>
+                {scholarship.status === 'closed' && (
+                  <span className="badge badge-closed">
+                    Past Cycle Concluded
+                  </span>
+                )}
+              </div>
+
+              <p style={{ fontSize: '0.92rem', color: 'var(--slate-600)', lineHeight: 1.6, marginBottom: '20px' }}>
+                {scholarship.history_summary || 'Historical statistics and cutoffs help students understand previous selection criteria, fund availability, and plan ahead.'}
+              </p>
+
+              {/* 4-Stat Historical Highlights Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '14px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--slate-500)', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
+                    🎯 Last Year Cutoff
+                  </span>
+                  <strong style={{ fontSize: '0.98rem', color: 'var(--primary-800)' }}>
+                    {scholarship.previous_year_cutoff || 'Eligible Candidates Selected'}
+                  </strong>
+                </div>
+
+                <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--slate-500)', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
+                    👥 Previous Beneficiaries
+                  </span>
+                  <strong style={{ fontSize: '0.98rem', color: '#047857' }}>
+                    {scholarship.total_beneficiaries_last_year ? scholarship.total_beneficiaries_last_year.toLocaleString('en-IN') + ' Scholars' : 'Thousands Benefited'}
+                  </strong>
+                </div>
+
+                <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--slate-500)', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
+                    💰 Funds Disbursed (Last Cycle)
+                  </span>
+                  <strong style={{ fontSize: '0.98rem', color: '#c2410c' }}>
+                    {scholarship.last_year_disbursed_amount || '₹10+ Crores'}
+                  </strong>
+                </div>
+
+                <div style={{ backgroundColor: '#eff6ff', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe' }}>
+                  <span style={{ fontSize: '0.74rem', color: '#1d4ed8', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
+                    📅 Expected Next Opening
+                  </span>
+                  <strong style={{ fontSize: '0.98rem', color: '#1e40af' }}>
+                    {scholarship.expected_next_cycle || 'Annual Next Session'}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Alert Callout Box */}
+              <div style={{
+                backgroundColor: '#eff6ff',
+                border: '1.5px solid #bfdbfe',
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div>
+                  <h4 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#1e40af', margin: '0 0 4px 0' }}>
+                    Want to apply as soon as the fresh cycle opens?
+                  </h4>
+                  <p style={{ fontSize: '0.84rem', color: '#3b82f6', margin: 0 }}>
+                    We track portal announcements daily and will alert you via email & SMS when applications go live.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setNotifyModalOpen(true)}
+                  className="btn btn-sm"
+                  style={{
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 18px',
+                    fontSize: '0.86rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Bell size={15} /> Set Next Cycle Alert
+                </button>
+              </div>
+            </div>
+
             {/* Section 5: Application Procedure */}
             {scholarship.application_procedure && (
               <div className="card" style={{ padding: '28px', marginBottom: '24px' }}>
@@ -500,13 +609,49 @@ export default function ScholarshipDetail() {
                 </div>
               </div>
 
-              <button
-                onClick={() => setApplyModalOpen(true)}
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '12px', marginBottom: '10px' }}
-              >
-                Apply Online Now
-              </button>
+              {scholarship.status === 'closed' ? (
+                <button
+                  onClick={() => setNotifyModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginBottom: '10px',
+                    backgroundColor: '#2563eb',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Bell size={16} /> Notify Me for Next Cycle
+                </button>
+              ) : scholarship.status === 'upcoming' ? (
+                <button
+                  onClick={() => setNotifyModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginBottom: '10px',
+                    backgroundColor: '#0284c7',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Bell size={16} /> Get Alert When Open
+                </button>
+              ) : (
+                <button
+                  onClick={() => setApplyModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '12px', marginBottom: '10px' }}
+                >
+                  Apply Online Now
+                </button>
+              )}
 
               <button
                 onClick={handleToggleSave}
@@ -573,6 +718,13 @@ export default function ScholarshipDetail() {
       <ApplyModal
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
+        scholarship={scholarship}
+      />
+
+      {/* Cycle Alert Notification Modal */}
+      <NotifyModal
+        isOpen={notifyModalOpen}
+        onClose={() => setNotifyModalOpen(false)}
         scholarship={scholarship}
       />
 

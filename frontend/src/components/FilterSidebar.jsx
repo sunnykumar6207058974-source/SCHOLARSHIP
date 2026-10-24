@@ -28,6 +28,13 @@ export default function FilterSidebar({ filters, setFilters, onReset, totalCount
     'International'
   ];
 
+  const authorityTypes = [
+    { label: 'All Portals (Central + State + CSR)', value: '' },
+    { label: '🇮🇳 Central Govt / NSP Schemes', value: 'Central Government' },
+    { label: '🏛️ State Govt Schemes (UP, Bihar, MH...)', value: 'State Government' },
+    { label: '🏢 Corporate CSR (Tata, Reliance, HDFC)', value: 'Corporate / CSR' }
+  ];
+
   const states = [
     'All India',
     'Maharashtra',
@@ -101,6 +108,21 @@ export default function FilterSidebar({ filters, setFilters, onReset, totalCount
           />
           <Search size={15} color="var(--slate-400)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
         </div>
+      </div>
+
+      {/* Scheme Authority Portal */}
+      <div className="form-group" style={{ marginBottom: '22px' }}>
+        <label className="form-label" style={{ fontSize: '0.84rem' }}>Portal / Authority</label>
+        <select
+          className="form-select"
+          value={filters.scheme_authority_type || ''}
+          onChange={(e) => handleChange('scheme_authority_type', e.target.value)}
+          style={{ fontSize: '0.86rem' }}
+        >
+          {authorityTypes.map((auth) => (
+            <option key={auth.value} value={auth.value}>{auth.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* Education Level */}

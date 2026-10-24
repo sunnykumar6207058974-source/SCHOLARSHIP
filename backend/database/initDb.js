@@ -80,6 +80,7 @@ async function setupTables() {
       is_always_open INTEGER DEFAULT 0,
       status VARCHAR(20) DEFAULT 'live',
       scholarship_type VARCHAR(50) DEFAULT 'Corporate/CSR',
+      scheme_authority_type VARCHAR(50) DEFAULT 'Central Government',
       education_level VARCHAR(100) DEFAULT 'All',
       state_domicile VARCHAR(100) DEFAULT 'All India',
       brief_description TEXT NOT NULL,
@@ -89,6 +90,11 @@ async function setupTables() {
       official_source_url VARCHAR(500),
       featured INTEGER DEFAULT 0,
       is_published INTEGER DEFAULT 1,
+      previous_year_cutoff VARCHAR(100),
+      last_year_disbursed_amount VARCHAR(100),
+      total_beneficiaries_last_year INT DEFAULT 0,
+      expected_next_cycle VARCHAR(100),
+      history_summary TEXT,
       created_at ${timestampCol},
       updated_at ${timestampCol},
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -221,7 +227,119 @@ async function setupTables() {
     )
   `);
 
-  console.log('✅ Tables created successfully.');
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS scholarship_alerts (
+      id ${autoInc} ${engine === 'mysql' ? 'PRIMARY KEY' : ''},
+      scholarship_id INT NOT NULL,
+      user_id INT NULL,
+      email VARCHAR(191) NOT NULL,
+      mobile VARCHAR(20),
+      created_at ${timestampCol},
+      FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Incremental migration for existing databases
+  const alterColumns = [
+    "ALTER TABLE scholarships ADD COLUMN scheme_authority_type VARCHAR(50) DEFAULT 'Central Government'",
+    "ALTER TABLE scholarships ADD COLUMN previous_year_cutoff VARCHAR(100)",
+    "ALTER TABLE scholarships ADD COLUMN last_year_disbursed_amount VARCHAR(100)",
+    "ALTER TABLE scholarships ADD COLUMN total_beneficiaries_last_year INT DEFAULT 0",
+    "ALTER TABLE scholarships ADD COLUMN expected_next_cycle VARCHAR(100)",
+    "ALTER TABLE scholarships ADD COLUMN history_summary TEXT"
+  ];
+  for (const alterSql of alterColumns) {
+    try {
+      await db.query(alterSql);
+    } catch (e) {
+      // Column may already exist
+    }
+  }
+
+  console.log('✅ Tables created and migrated successfully.');
+}
+
+async function syncScholarships() {
+  console.log('🔄 Synchronizing All-India & Past History scholarships...');
+  const { rows: categories } = await db.query('SELECT id, slug FROM categories');
+  const catMap = {};
+  categories.forEach(c => { catMap[c.slug] = c.id; });
+
+  for (const s of seedScholarships) {
+    const { rows: exists } = await db.query('SELECT id FROM scholarships WHERE slug = ?', [s.slug]);
+    const categoryId = catMap[s.category_slug] || null;
+
+    if (exists.length === 0) {
+      const res = await db.query(
+        `INSERT INTO scholarships (
+          category_id, title, slug, provider_name, provider_logo,
+          award_amount, award_amount_value, deadline, is_always_open,
+          status, scholarship_type, scheme_authority_type, education_level, state_domicile,
+          brief_description, full_overview, benefits, application_procedure,
+          official_source_url, featured, is_published,
+          previous_year_cutoff, last_year_disbursed_amount, total_beneficiaries_last_year,
+          expected_next_cycle, history_summary
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          categoryId, s.title, s.slug, s.provider_name, s.provider_logo || null,
+          s.award_amount, s.award_amount_value, s.deadline, s.is_always_open || 0,
+          s.status, s.scholarship_type, s.scheme_authority_type || 'Central Government',
+          s.education_level, s.state_domicile, s.brief_description, s.full_overview,
+          s.benefits, s.application_procedure, s.official_source_url, s.featured || 0, 1,
+          s.previous_year_cutoff || null, s.last_year_disbursed_amount || null,
+          s.total_beneficiaries_last_year || 0, s.expected_next_cycle || null, s.history_summary || null
+        ]
+      );
+      const schId = res.insertId;
+
+      if (s.criteria) {
+        await db.query(
+          `INSERT INTO eligibility_criteria (
+            scholarship_id, min_education_level, min_marks_percentage,
+            max_family_income, applicable_gender, applicable_category,
+            applicable_state, requires_disability, additional_rules
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            schId, s.criteria.min_education_level, s.criteria.min_marks_percentage,
+            s.criteria.max_family_income, s.criteria.applicable_gender,
+            s.criteria.applicable_category, s.criteria.applicable_state,
+            s.criteria.requires_disability, s.criteria.additional_rules
+          ]
+        );
+      }
+
+      if (s.faqs && s.faqs.length > 0) {
+        for (let i = 0; i < s.faqs.length; i++) {
+          await db.query(
+            'INSERT INTO faqs (scholarship_id, question, answer, order_index) VALUES (?, ?, ?, ?)',
+            [schId, s.faqs[i].question, s.faqs[i].answer, i]
+          );
+        }
+      }
+    } else {
+      // Update historical fields if already in DB
+      await db.query(
+        `UPDATE scholarships SET
+          scheme_authority_type = COALESCE(?, scheme_authority_type),
+          previous_year_cutoff = COALESCE(?, previous_year_cutoff),
+          last_year_disbursed_amount = COALESCE(?, last_year_disbursed_amount),
+          total_beneficiaries_last_year = COALESCE(?, total_beneficiaries_last_year),
+          expected_next_cycle = COALESCE(?, expected_next_cycle),
+          history_summary = COALESCE(?, history_summary)
+        WHERE slug = ?`,
+        [
+          s.scheme_authority_type || 'Central Government',
+          s.previous_year_cutoff || null,
+          s.last_year_disbursed_amount || null,
+          s.total_beneficiaries_last_year || 0,
+          s.expected_next_cycle || null,
+          s.history_summary || null,
+          s.slug
+        ]
+      );
+    }
+  }
+  console.log('✅ Scholarships synchronized with 3-pillar data.');
 }
 
 async function seedDatabase() {
@@ -232,7 +350,8 @@ async function seedDatabase() {
   const catCount = existingCats[0].count || existingCats[0]['COUNT(*)'] || 0;
 
   if (catCount > 0) {
-    console.log('ℹ️  Database already contains seed data. Skipping re-seed.');
+    console.log('ℹ️  Database contains existing data. Synchronizing latest 3-pillar records...');
+    await syncScholarships();
     return;
   }
 
@@ -289,16 +408,21 @@ async function seedDatabase() {
       `INSERT INTO scholarships (
         category_id, title, slug, provider_name, provider_logo,
         award_amount, award_amount_value, deadline, is_always_open,
-        status, scholarship_type, education_level, state_domicile,
+        status, scholarship_type, scheme_authority_type, education_level, state_domicile,
         brief_description, full_overview, benefits, application_procedure,
-        official_source_url, featured, is_published
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        official_source_url, featured, is_published,
+        previous_year_cutoff, last_year_disbursed_amount, total_beneficiaries_last_year,
+        expected_next_cycle, history_summary
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         categoryId, s.title, s.slug, s.provider_name, s.provider_logo || null,
-        s.award_amount, s.award_amount_value, s.deadline, s.is_always_open,
-        s.status, s.scholarship_type, s.education_level, s.state_domicile,
+        s.award_amount, s.award_amount_value, s.deadline, s.is_always_open || 0,
+        s.status, s.scholarship_type, s.scheme_authority_type || 'Central Government',
+        s.education_level, s.state_domicile,
         s.brief_description, s.full_overview, s.benefits, s.application_procedure,
-        s.official_source_url, s.featured, 1
+        s.official_source_url, s.featured || 0, 1,
+        s.previous_year_cutoff || null, s.last_year_disbursed_amount || null,
+        s.total_beneficiaries_last_year || 0, s.expected_next_cycle || null, s.history_summary || null
       ]
     );
     const schId = res.insertId;

@@ -1,0 +1,16 @@
+{
+  "name": "eduscholar-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "All-India Scholarship Discovery & History Platform",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "seed": "npm --prefix backend run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

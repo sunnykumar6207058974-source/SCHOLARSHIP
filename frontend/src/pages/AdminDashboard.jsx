@@ -13,17 +13,27 @@ import {
   X,
   Search,
   Sliders,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  Globe,
+  Building2,
+  Landmark,
+  Radio,
+  ExternalLink,
+  History,
+  CheckCheck
 } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('scholarships'); // scholarships, applications, users
+  const [activeTab, setActiveTab] = useState('scholarships'); // scholarships, applications, users, crawler
   const [stats, setStats] = useState(null);
   const [scholarships, setScholarships] = useState([]);
   const [applications, setApplications] = useState([]);
   const [usersList, setUsersList] = useState([]);
+  const [crawlerData, setCrawlerData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncingPortals, setSyncingPortals] = useState(false);
 
   // Filter application status
   const [appStatusFilter, setAppStatusFilter] = useState('all');
@@ -39,6 +49,7 @@ export default function AdminDashboard() {
     is_always_open: false,
     status: 'live',
     scholarship_type: 'Corporate/CSR',
+    scheme_authority_type: 'Central Government',
     education_level: 'Graduation',
     state_domicile: 'All India',
     brief_description: '',
@@ -47,6 +58,11 @@ export default function AdminDashboard() {
     application_procedure: '',
     official_source_url: '',
     featured: 0,
+    previous_year_cutoff: '',
+    last_year_disbursed_amount: '',
+    total_beneficiaries_last_year: '',
+    expected_next_cycle: '',
+    history_summary: '',
     min_marks_percentage: 60,
     max_family_income: 500000,
     applicable_gender: 'All',
@@ -64,17 +80,19 @@ export default function AdminDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsRes, schRes, appRes, usersRes] = await Promise.all([
+      const [statsRes, schRes, appRes, usersRes, crawlerRes] = await Promise.all([
         api.admin.getStats(),
         api.admin.getScholarships(),
         api.admin.getApplications(appStatusFilter === 'all' ? '' : appStatusFilter),
-        api.admin.getUsers()
+        api.admin.getUsers(),
+        api.admin.getCrawlerStatus().catch(() => ({ success: false }))
       ]);
 
       if (statsRes.success) setStats(statsRes.data);
       if (schRes.success) setScholarships(schRes.data);
       if (appRes.success) setApplications(appRes.data);
       if (usersRes.success) setUsersList(usersRes.data);
+      if (crawlerRes && crawlerRes.success) setCrawlerData(crawlerRes.data);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -85,6 +103,23 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData();
   }, [appStatusFilter]);
+
+  const handleSyncPortals = async () => {
+    try {
+      setSyncingPortals(true);
+      const res = await api.admin.syncPortals();
+      if (res.success) {
+        setActionSuccess(`✓ Portals Scanned: ${res.data.new_schemes_added} new schemes ingested, ${res.data.existing_synced} deadlines & circulars refreshed!`);
+        await loadData();
+        setTimeout(() => setActionSuccess(''), 6000);
+      }
+    } catch (err) {
+      setFormError('Failed to sync government portals: ' + (err.message || 'Server error'));
+      setTimeout(() => setFormError(''), 5000);
+    } finally {
+      setSyncingPortals(false);
+    }
+  };
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -100,6 +135,36 @@ export default function AdminDashboard() {
       if (res.success) {
         setActionSuccess('New scholarship published successfully!');
         setCreateModalOpen(false);
+        // Reset form
+        setNewScholarship({
+          title: '',
+          provider_name: '',
+          award_amount: '',
+          award_amount_value: 50000,
+          deadline: '',
+          is_always_open: false,
+          status: 'live',
+          scholarship_type: 'Corporate/CSR',
+          scheme_authority_type: 'Central Government',
+          education_level: 'Graduation',
+          state_domicile: 'All India',
+          brief_description: '',
+          full_overview: '',
+          benefits: '',
+          application_procedure: '',
+          official_source_url: '',
+          featured: 0,
+          previous_year_cutoff: '',
+          last_year_disbursed_amount: '',
+          total_beneficiaries_last_year: '',
+          expected_next_cycle: '',
+          history_summary: '',
+          min_marks_percentage: 60,
+          max_family_income: 500000,
+          applicable_gender: 'All',
+          applicable_category: 'All',
+          additional_rules: ''
+        });
         loadData();
         setTimeout(() => setActionSuccess(''), 4000);
       }
@@ -147,28 +212,54 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#ea580c', fontWeight: 700, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              <ShieldAlert size={16} /> Portal Administration
+              <ShieldAlert size={16} /> Portal Administration & Live Hub
             </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary-800)' }}>
-              Scholarship Operations & Review Desk
+              All-India Scholarship Control Center
             </h1>
             <p style={{ color: 'var(--slate-600)', fontSize: '0.92rem' }}>
-              Manage active listings, review student applications, verify credentials, and track disbursements.
+              Sync official government circulars, manage Central & State schemes, track historical cutoffs, and review applications.
             </p>
           </div>
 
-          <button
-            onClick={() => setCreateModalOpen(true)}
-            className="btn btn-primary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          >
-            <PlusCircle size={18} /> Add New Scholarship
-          </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleSyncPortals}
+              disabled={syncingPortals}
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderColor: '#0284c7',
+                color: '#0284c7',
+                backgroundColor: '#f0f9ff',
+                fontWeight: 700
+              }}
+            >
+              <RefreshCw size={16} className={syncingPortals ? 'spin-icon' : ''} />
+              {syncingPortals ? 'Scanning Govt Portals...' : '⚡ Sync Live Portals'}
+            </button>
+
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="btn btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <PlusCircle size={18} /> Add New Scheme
+            </button>
+          </div>
         </div>
 
         {actionSuccess && (
           <div style={{ backgroundColor: 'var(--accent-emerald-light)', border: '1px solid var(--accent-emerald-border)', color: '#065f46', padding: '12px 18px', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', marginBottom: '24px', fontWeight: 600 }}>
-            ✓ {actionSuccess}
+            {actionSuccess}
+          </div>
+        )}
+
+        {formError && (
+          <div style={{ backgroundColor: 'var(--accent-rose-light)', border: '1px solid #fecdd3', color: 'var(--accent-rose)', padding: '12px 18px', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', marginBottom: '24px', fontWeight: 600 }}>
+            ⚠️ {formError}
           </div>
         )}
 
@@ -176,8 +267,8 @@ export default function AdminDashboard() {
         {stats && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '18px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: '16px',
             marginBottom: '32px'
           }}>
             {[
@@ -191,7 +282,7 @@ export default function AdminDashboard() {
                 <strong style={{ fontSize: '1.8rem', color: kpi.color, fontWeight: 800, display: 'block' }}>
                   {kpi.val}
                 </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--slate-500)', fontWeight: 600, textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--slate-500)', fontWeight: 600, textTransform: 'uppercase' }}>
                   {kpi.label}
                 </span>
               </div>
@@ -200,9 +291,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Tab Selector */}
-        <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid var(--slate-200)', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid var(--slate-200)', marginBottom: '24px', overflowX: 'auto' }}>
           {[
             { id: 'scholarships', label: `Manage Scholarships (${scholarships.length})` },
+            { id: 'crawler', label: `🌐 Live Portals & Scraper Engine` },
             { id: 'applications', label: `Student Applications (${applications.length})` },
             { id: 'users', label: `Registered Users (${usersList.length})` }
           ].map((tab) => (
@@ -217,7 +309,8 @@ export default function AdminDashboard() {
                 borderBottom: activeTab === tab.id ? '3px solid var(--accent-orange)' : '3px solid transparent',
                 marginBottom: '-2px',
                 background: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
               }}
             >
               {tab.label}
@@ -232,8 +325,9 @@ export default function AdminDashboard() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--slate-50)', borderBottom: '1px solid var(--slate-200)', color: 'var(--slate-600)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                    <th style={{ padding: '14px 20px' }}>Scholarship & Provider</th>
+                    <th style={{ padding: '14px 20px' }}>Authority & Scheme</th>
                     <th style={{ padding: '14px 20px' }}>Award Amount</th>
+                    <th style={{ padding: '14px 20px' }}>Historical Cutoff</th>
                     <th style={{ padding: '14px 20px' }}>Deadline</th>
                     <th style={{ padding: '14px 20px' }}>Status</th>
                     <th style={{ padding: '14px 20px' }}>Applications</th>
@@ -241,55 +335,215 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {scholarships.map((s) => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid var(--slate-100)' }}>
-                      <td style={{ padding: '16px 20px' }}>
-                        <strong style={{ color: 'var(--primary-800)', display: 'block', fontSize: '0.94rem' }}>
-                          {s.title}
-                        </strong>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--slate-500)' }}>
-                          {s.provider_name} • {s.category_name || s.scholarship_type}
-                        </span>
-                      </td>
+                  {scholarships.map((s) => {
+                    const isCentral = s.scheme_authority_type === 'Central Government';
+                    const isState = s.scheme_authority_type === 'State Government';
+                    const isCsr = s.scheme_authority_type === 'Corporate / CSR' || s.scholarship_type === 'Corporate/CSR';
 
-                      <td style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--accent-orange)' }}>
-                        {s.award_amount}
-                      </td>
+                    return (
+                      <tr key={s.id} style={{ borderBottom: '1px solid var(--slate-100)' }}>
+                        <td style={{ padding: '16px 20px', maxWidth: '340px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: isState ? '#eef2ff' : isCsr ? '#ecfdf5' : '#fff7ed',
+                              color: isState ? '#4338ca' : isCsr ? '#047857' : '#c2410c',
+                              border: `1px solid ${isState ? '#c7d2fe' : isCsr ? '#a7f3d0' : '#fed7aa'}`
+                            }}>
+                              {isState ? '🏛️ State Govt' : isCsr ? '🏢 CSR' : '🇮🇳 Central Govt'}
+                            </span>
+                            {s.state_domicile && s.state_domicile !== 'All India' && (
+                              <span style={{ fontSize: '0.7rem', color: 'var(--slate-500)', fontWeight: 600 }}>
+                                • {s.state_domicile}
+                              </span>
+                            )}
+                          </div>
+                          <strong style={{ color: 'var(--primary-800)', display: 'block', fontSize: '0.94rem' }}>
+                            {s.title}
+                          </strong>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--slate-500)' }}>
+                            {s.provider_name}
+                          </span>
+                        </td>
 
-                      <td style={{ padding: '16px 20px', color: 'var(--slate-600)', fontSize: '0.84rem' }}>
-                        {s.is_always_open ? 'Always Open' : (s.deadline ? new Date(s.deadline).toLocaleDateString('en-IN') : 'N/A')}
-                      </td>
+                        <td style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--accent-orange)', whiteSpace: 'nowrap' }}>
+                          {s.award_amount}
+                        </td>
 
-                      <td style={{ padding: '16px 20px' }}>
-                        <span className={`badge ${s.status === 'live' ? 'badge-live' : 'badge-upcoming'}`}>
-                          {s.status}
-                        </span>
-                      </td>
+                        <td style={{ padding: '16px 20px', fontSize: '0.82rem' }}>
+                          {s.previous_year_cutoff ? (
+                            <div>
+                              <span style={{ fontWeight: 700, color: '#047857', display: 'block' }}>
+                                {s.previous_year_cutoff}
+                              </span>
+                              {s.total_beneficiaries_last_year ? (
+                                <span style={{ fontSize: '0.74rem', color: 'var(--slate-500)' }}>
+                                  {Number(s.total_beneficiaries_last_year).toLocaleString('en-IN')} students
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--slate-400)', fontStyle: 'italic' }}>First cycle / N/A</span>
+                          )}
+                        </td>
 
-                      <td style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--primary-700)' }}>
-                        {s.applications_count || 0}
-                      </td>
+                        <td style={{ padding: '16px 20px', color: 'var(--slate-600)', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
+                          {s.is_always_open ? 'Always Open' : (s.deadline ? new Date(s.deadline).toLocaleDateString('en-IN') : 'TBA')}
+                        </td>
 
-                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '8px' }}>
-                          <button
-                            onClick={() => handleDeleteScholarship(s.id)}
-                            style={{ color: 'var(--accent-rose)', cursor: 'pointer', padding: '4px' }}
-                            title="Delete scholarship"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        <td style={{ padding: '16px 20px' }}>
+                          <span className={`badge ${s.status === 'live' ? 'badge-live' : s.status === 'closed' ? 'badge-closed' : 'badge-upcoming'}`}>
+                            {s.status === 'closed' ? 'Closed (History)' : s.status}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '16px 20px', fontWeight: 700, color: 'var(--primary-700)' }}>
+                          {s.applications_count || 0}
+                        </td>
+
+                        <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '8px' }}>
+                            <button
+                              onClick={() => handleDeleteScholarship(s.id)}
+                              style={{ color: 'var(--accent-rose)', cursor: 'pointer', padding: '4px', background: 'none', border: 'none' }}
+                              title="Delete scholarship"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Applications Review */}
+        {/* Tab 2: Crawler Engine & Official Government Portals */}
+        {activeTab === 'crawler' && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+              color: 'white',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px 28px',
+              marginBottom: '28px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '20px'
+            }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>
+                  <Radio size={16} style={{ color: '#22c55e' }} /> Automated Live Synchronization Active
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', marginBottom: '6px' }}>
+                  Official Government & Corporate CSR Portal Ingestion
+                </h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '640px' }}>
+                  EduScholar’s automated engine monitors state and central portals to fetch latest notifications, application opening dates, and previous year cutoff statistics.
+                </p>
+                <div style={{ marginTop: '12px', display: 'flex', gap: '20px', fontSize: '0.84rem', color: '#cbd5e1' }}>
+                  <span><strong>Schedule:</strong> Daily at Midnight IST</span>
+                  <span><strong>Protocol:</strong> Hybrid Scraper + REST Sync</span>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  onClick={handleSyncPortals}
+                  disabled={syncingPortals}
+                  className="btn"
+                  style={{
+                    backgroundColor: '#0284c7',
+                    color: 'white',
+                    padding: '12px 22px',
+                    fontWeight: 700,
+                    borderRadius: 'var(--radius-md)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.92rem',
+                    border: 'none',
+                    cursor: syncingPortals ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+                  }}
+                >
+                  <RefreshCw size={18} className={syncingPortals ? 'spin-icon' : ''} />
+                  {syncingPortals ? 'Scanning Connected Portals...' : 'Run Manual Scraper Now'}
+                </button>
+              </div>
+            </div>
+
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-800)', marginBottom: '16px' }}>
+              Connected Official Portals & Sources ({crawlerData?.sources?.length || 6})
+            </h3>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '18px'
+            }}>
+              {(crawlerData?.sources || [
+                { name: 'National Scholarship Portal (NSP)', authority: 'Central Government', portalUrl: 'https://scholarships.gov.in', state: 'All India' },
+                { name: 'AICTE Student Development Schemes', authority: 'Central Government', portalUrl: 'https://www.aicte-india.org/schemes', state: 'All India' },
+                { name: 'Uttar Pradesh Social Welfare Portal', authority: 'State Government', portalUrl: 'https://scholarship.up.gov.in', state: 'Uttar Pradesh' },
+                { name: 'Bihar PMS Online Portal', authority: 'State Government', portalUrl: 'https://pmsonline.bih.nic.in', state: 'Bihar' },
+                { name: 'Maharashtra MahaDBT Portal', authority: 'State Government', portalUrl: 'https://mahadbt.maharashtra.gov.in', state: 'Maharashtra' },
+                { name: 'National CSR Foundation Network', authority: 'Corporate / CSR', portalUrl: 'https://csr.gov.in', state: 'All India' }
+              ]).map((portal, idx) => (
+                <div key={idx} className="card" style={{ padding: '20px', border: '1.5px solid var(--slate-200)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: portal.authority === 'State Government' ? '#eef2ff' : portal.authority === 'Corporate / CSR' ? '#ecfdf5' : '#fff7ed',
+                        color: portal.authority === 'State Government' ? '#4338ca' : portal.authority === 'Corporate / CSR' ? '#047857' : '#c2410c'
+                      }}>
+                        {portal.authority}
+                      </span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#16a34a', fontSize: '0.76rem', fontWeight: 700 }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }}></span> Connected
+                      </span>
+                    </div>
+
+                    <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-800)', marginBottom: '6px' }}>
+                      {portal.name}
+                    </h4>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--slate-500)', marginBottom: '12px' }}>
+                      Jurisdiction: <strong>{portal.state}</strong>
+                    </p>
+                  </div>
+
+                  <div style={{ paddingTop: '12px', borderTop: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <a
+                      href={portal.portalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '0.82rem', color: 'var(--primary-700)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      Visit Official Portal <ExternalLink size={14} />
+                    </a>
+                    <span style={{ fontSize: '0.76rem', color: 'var(--slate-400)' }}>
+                      Auto-verified
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Applications Review */}
         {activeTab === 'applications' && (
           <div>
             {/* Filter */}
@@ -382,7 +636,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 3: Users List */}
+        {/* Tab 4: Users List */}
         {activeTab === 'users' && (
           <div className="card" style={{ border: '1.5px solid var(--slate-200)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
@@ -436,15 +690,20 @@ export default function AdminDashboard() {
 
       </div>
 
-      {/* Modal: Create Scholarship */}
+      {/* Modal: Create / Publish Scholarship */}
       {createModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ backgroundColor: 'var(--white)', width: '100%', maxWidth: '720px', maxHeight: '85vh', overflowY: 'auto', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', border: '1px solid var(--slate-200)', padding: '28px' }}>
+          <div style={{ backgroundColor: 'var(--white)', width: '100%', maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', border: '1px solid var(--slate-200)', padding: '28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--slate-200)', paddingBottom: '12px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-800)' }}>
-                Publish New Scholarship Scheme
-              </h3>
-              <button onClick={() => setCreateModalOpen(false)} style={{ color: 'var(--slate-500)', cursor: 'pointer' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-800)' }}>
+                  Publish New Scholarship Scheme
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>
+                  Includes Central & State government schemes, Corporate CSR, and historical trends.
+                </span>
+              </div>
+              <button onClick={() => setCreateModalOpen(false)} style={{ color: 'var(--slate-500)', cursor: 'pointer', background: 'none', border: 'none' }}>
                 <X size={20} />
               </button>
             </div>
@@ -465,8 +724,35 @@ export default function AdminDashboard() {
                     className="form-input"
                     value={newScholarship.title}
                     onChange={(e) => setNewScholarship({ ...newScholarship, title: e.target.value })}
-                    placeholder="e.g. Mahindra All India Talent Scholarship 2026"
+                    placeholder="e.g. Uttar Pradesh Post-Matric Inter Scholarship 2026"
                   />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Authority Type *</label>
+                  <select
+                    className="form-select"
+                    value={newScholarship.scheme_authority_type}
+                    onChange={(e) => setNewScholarship({ ...newScholarship, scheme_authority_type: e.target.value })}
+                  >
+                    <option value="Central Government">Central Government (NSP / Ministries)</option>
+                    <option value="State Government">State Government (State Portals)</option>
+                    <option value="Corporate / CSR">Corporate / CSR Foundation</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Status *</label>
+                  <select
+                    className="form-select"
+                    value={newScholarship.status}
+                    onChange={(e) => setNewScholarship({ ...newScholarship, status: e.target.value })}
+                  >
+                    <option value="live">Live (Currently Accepting)</option>
+                    <option value="upcoming">Upcoming (Opening Soon)</option>
+                    <option value="closed">Closed / Historical Archive</option>
+                    <option value="always_open">Always Open / Rolling</option>
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -477,7 +763,7 @@ export default function AdminDashboard() {
                     className="form-input"
                     value={newScholarship.provider_name}
                     onChange={(e) => setNewScholarship({ ...newScholarship, provider_name: e.target.value })}
-                    placeholder="e.g. K.C. Mahindra Education Trust"
+                    placeholder="e.g. Social Welfare Department, UP"
                   />
                 </div>
 
@@ -489,7 +775,7 @@ export default function AdminDashboard() {
                     className="form-input"
                     value={newScholarship.award_amount}
                     onChange={(e) => setNewScholarship({ ...newScholarship, award_amount: e.target.value })}
-                    placeholder="e.g. ₹10,000 per annum"
+                    placeholder="e.g. ₹50,000 per annum + Tuition Waiver"
                   />
                 </div>
 
@@ -500,21 +786,19 @@ export default function AdminDashboard() {
                     className="form-input"
                     value={newScholarship.deadline}
                     onChange={(e) => setNewScholarship({ ...newScholarship, deadline: e.target.value })}
-                  />
+                  >
+                  </input>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Scholarship Type</label>
-                  <select
-                    className="form-select"
-                    value={newScholarship.scholarship_type}
-                    onChange={(e) => setNewScholarship({ ...newScholarship, scholarship_type: e.target.value })}
-                  >
-                    <option value="Corporate/CSR">Corporate/CSR</option>
-                    <option value="Government">Government</option>
-                    <option value="Private/NGO">Private/NGO</option>
-                    <option value="International">International</option>
-                  </select>
+                  <label className="form-label">State Domicile</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={newScholarship.state_domicile}
+                    onChange={(e) => setNewScholarship({ ...newScholarship, state_domicile: e.target.value })}
+                    placeholder="All India, Uttar Pradesh, Bihar, Maharashtra, etc."
+                  />
                 </div>
 
                 <div className="form-group">
@@ -527,8 +811,8 @@ export default function AdminDashboard() {
                     <option value="All">Open for All</option>
                     <option value="Class 1-10">Class 1 to 10</option>
                     <option value="Class 11-12">Class 11 & 12</option>
-                    <option value="Graduation">Graduation</option>
-                    <option value="Post-Graduation">Post-Graduation</option>
+                    <option value="Graduation">Graduation (UG)</option>
+                    <option value="Post-Graduation">Post-Graduation (PG)</option>
                     <option value="Diploma">Diploma / Polytechnic</option>
                   </select>
                 </div>
@@ -543,27 +827,68 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Max Family Annual Income (₹)</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    value={newScholarship.max_family_income}
-                    onChange={(e) => setNewScholarship({ ...newScholarship, max_family_income: parseFloat(e.target.value) })}
-                  />
-                </div>
+                {/* Historical stats section */}
+                <div style={{ gridColumn: 'span 2', backgroundColor: '#f1f5f9', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--slate-300)' }}>
+                  <h4 style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--primary-800)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <History size={16} color="#0284c7" /> Historical Trends & Previous Year Archive Data (Optional)
+                  </h4>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Previous Year Cutoff Score / %</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={newScholarship.previous_year_cutoff}
+                        onChange={(e) => setNewScholarship({ ...newScholarship, previous_year_cutoff: e.target.value })}
+                        placeholder="e.g. 78.5% in 12th Board / 80th percentile"
+                      />
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">Gender Eligibility</label>
-                  <select
-                    className="form-select"
-                    value={newScholarship.applicable_gender}
-                    onChange={(e) => setNewScholarship({ ...newScholarship, applicable_gender: e.target.value })}
-                  >
-                    <option value="All">All</option>
-                    <option value="Female">Female Only</option>
-                    <option value="Male">Male</option>
-                  </select>
+                    <div className="form-group">
+                      <label className="form-label">Last Year Disbursed Amount</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={newScholarship.last_year_disbursed_amount}
+                        onChange={(e) => setNewScholarship({ ...newScholarship, last_year_disbursed_amount: e.target.value })}
+                        placeholder="e.g. ₹120 Crores"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Total Beneficiaries Last Year</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={newScholarship.total_beneficiaries_last_year}
+                        onChange={(e) => setNewScholarship({ ...newScholarship, total_beneficiaries_last_year: e.target.value })}
+                        placeholder="e.g. 45000"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Expected Next Cycle Opening</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={newScholarship.expected_next_cycle}
+                        onChange={(e) => setNewScholarship({ ...newScholarship, expected_next_cycle: e.target.value })}
+                        placeholder="e.g. July 2027"
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                      <label className="form-label">Historical Selection Summary</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={newScholarship.history_summary}
+                        onChange={(e) => setNewScholarship({ ...newScholarship, history_summary: e.target.value })}
+                        placeholder="e.g. Over 45,000 students received Direct Benefit Transfer straight to bank account."
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
@@ -579,23 +904,23 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label">Official Source URL</label>
+                  <label className="form-label">Official Source Portal URL</label>
                   <input
                     type="url"
                     className="form-input"
                     value={newScholarship.official_source_url}
                     onChange={(e) => setNewScholarship({ ...newScholarship, official_source_url: e.target.value })}
-                    placeholder="https://..."
+                    placeholder="https://scholarships.gov.in/..."
                   />
                 </div>
               </div>
 
-              <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setCreateModalOpen(false)} className="btn btn-outline">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  Publish Scholarship
+                  Publish Scheme to All-India Hub
                 </button>
               </div>
             </form>
@@ -611,7 +936,7 @@ export default function AdminDashboard() {
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-800)' }}>
                 Review Application #{selectedApp.application_number}
               </h3>
-              <button onClick={() => setSelectedApp(null)} style={{ color: 'var(--slate-500)', cursor: 'pointer' }}>
+              <button onClick={() => setSelectedApp(null)} style={{ color: 'var(--slate-500)', cursor: 'pointer', background: 'none', border: 'none' }}>
                 <X size={20} />
               </button>
             </div>

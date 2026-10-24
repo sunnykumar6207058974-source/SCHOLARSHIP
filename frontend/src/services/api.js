@@ -47,7 +47,8 @@ export const api = {
     },
     getFeatured: () => request('/scholarships/featured'),
     getCategories: () => request('/scholarships/categories'),
-    getDetail: (idOrSlug) => request(`/scholarships/${idOrSlug}`)
+    getDetail: (idOrSlug) => request(`/scholarships/${idOrSlug}`),
+    notifyMe: (idOrSlug, payload) => request(`/scholarships/${idOrSlug}/notify-me`, { method: 'POST', body: JSON.stringify(payload) })
   },
 
   // Eligibility Rule Matcher
@@ -97,6 +98,8 @@ export const api = {
     deleteScholarship: (id) => request(`/admin/scholarships/${id}`, { method: 'DELETE' }),
     getApplications: (status) => request(`/admin/applications${status ? `?status=${status}` : ''}`),
     updateAppStatus: (id, status, reviewer_notes) => request(`/admin/applications/${id}/status`, { method: 'PUT', body: JSON.stringify({ status, reviewer_notes }) }),
-    getUsers: () => request('/admin/users')
+    getUsers: () => request('/admin/users'),
+    syncPortals: () => request('/admin/sync-portals', { method: 'POST' }),
+    getCrawlerStatus: () => request('/admin/crawler-status')
   }
 };

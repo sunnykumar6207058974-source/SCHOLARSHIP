@@ -47,6 +47,8 @@ exports.getAdminScholarships = async (req, res) => {
   }
 };
 
+const scraperService = require('../services/scraperService');
+
 exports.createScholarship = async (req, res) => {
   try {
     const {
@@ -59,6 +61,7 @@ exports.createScholarship = async (req, res) => {
       is_always_open,
       status,
       scholarship_type,
+      scheme_authority_type,
       education_level,
       state_domicile,
       brief_description,
@@ -67,6 +70,11 @@ exports.createScholarship = async (req, res) => {
       application_procedure,
       official_source_url,
       featured,
+      previous_year_cutoff,
+      last_year_disbursed_amount,
+      total_beneficiaries_last_year,
+      expected_next_cycle,
+      history_summary,
       min_marks_percentage,
       max_family_income,
       applicable_gender,
@@ -87,18 +95,24 @@ exports.createScholarship = async (req, res) => {
       `INSERT INTO scholarships (
         category_id, title, slug, provider_name, award_amount,
         award_amount_value, deadline, is_always_open, status,
-        scholarship_type, education_level, state_domicile,
+        scholarship_type, scheme_authority_type, education_level, state_domicile,
         brief_description, full_overview, benefits, application_procedure,
-        official_source_url, featured, is_published
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        official_source_url, featured, is_published,
+        previous_year_cutoff, last_year_disbursed_amount, total_beneficiaries_last_year,
+        expected_next_cycle, history_summary
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
       [
         category_id || null, title, slug, provider_name, award_amount,
         award_amount_value || 0, is_always_open ? null : (deadline || null),
         is_always_open ? 1 : 0, status || 'live', scholarship_type || 'Corporate/CSR',
+        scheme_authority_type || 'Central Government',
         education_level || 'All', state_domicile || 'All India',
         brief_description, full_overview || brief_description,
         benefits || '', application_procedure || '',
-        official_source_url || '', featured ? 1 : 0
+        official_source_url || '', featured ? 1 : 0,
+        previous_year_cutoff || null, last_year_disbursed_amount || null,
+        total_beneficiaries_last_year ? parseInt(total_beneficiaries_last_year, 10) : 0,
+        expected_next_cycle || null, history_summary || null
       ]
     );
 
@@ -148,6 +162,7 @@ exports.updateScholarship = async (req, res) => {
       is_always_open,
       status,
       scholarship_type,
+      scheme_authority_type,
       education_level,
       state_domicile,
       brief_description,
@@ -156,7 +171,12 @@ exports.updateScholarship = async (req, res) => {
       application_procedure,
       official_source_url,
       featured,
-      is_published
+      is_published,
+      previous_year_cutoff,
+      last_year_disbursed_amount,
+      total_beneficiaries_last_year,
+      expected_next_cycle,
+      history_summary
     } = req.body;
 
     await db.query(
@@ -170,6 +190,7 @@ exports.updateScholarship = async (req, res) => {
         is_always_open = COALESCE(?, is_always_open),
         status = COALESCE(?, status),
         scholarship_type = COALESCE(?, scholarship_type),
+        scheme_authority_type = COALESCE(?, scheme_authority_type),
         education_level = COALESCE(?, education_level),
         state_domicile = COALESCE(?, state_domicile),
         brief_description = COALESCE(?, brief_description),
@@ -178,16 +199,25 @@ exports.updateScholarship = async (req, res) => {
         application_procedure = COALESCE(?, application_procedure),
         official_source_url = COALESCE(?, official_source_url),
         featured = COALESCE(?, featured),
-        is_published = COALESCE(?, is_published)
+        is_published = COALESCE(?, is_published),
+        previous_year_cutoff = COALESCE(?, previous_year_cutoff),
+        last_year_disbursed_amount = COALESCE(?, last_year_disbursed_amount),
+        total_beneficiaries_last_year = COALESCE(?, total_beneficiaries_last_year),
+        expected_next_cycle = COALESCE(?, expected_next_cycle),
+        history_summary = COALESCE(?, history_summary)
       WHERE id = ?`,
       [
         title, category_id, provider_name, award_amount,
         award_amount_value, is_always_open ? null : deadline,
         is_always_open ? 1 : 0, status, scholarship_type,
+        scheme_authority_type,
         education_level, state_domicile, brief_description,
         full_overview, benefits, application_procedure,
         official_source_url, featured !== undefined ? (featured ? 1 : 0) : null,
         is_published !== undefined ? (is_published ? 1 : 0) : null,
+        previous_year_cutoff, last_year_disbursed_amount,
+        total_beneficiaries_last_year ? parseInt(total_beneficiaries_last_year, 10) : null,
+        expected_next_cycle, history_summary,
         id
       ]
     );
@@ -320,3 +350,31 @@ exports.getAdminUsers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error retrieving users.' });
   }
 };
+
+exports.syncGovernmentPortals = async (req, res) => {
+  try {
+    const result = await scraperService.syncPortals();
+    res.json({
+      success: true,
+      message: 'Official Government & CSR portals scanned successfully!',
+      data: result
+    });
+  } catch (err) {
+    console.error('Error syncing government portals:', err);
+    res.status(500).json({ success: false, message: 'Portal sync failed: ' + err.message });
+  }
+};
+
+exports.getPortalCrawlerStatus = async (req, res) => {
+  try {
+    const status = scraperService.getPortalStatus();
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (err) {
+    console.error('Error fetching portal crawler status:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch crawler status.' });
+  }
+};
+
