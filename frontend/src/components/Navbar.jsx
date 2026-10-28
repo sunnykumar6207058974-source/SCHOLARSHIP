@@ -185,6 +185,20 @@ export default function Navbar({ onOpenSearch }) {
                       <li><Link to="/scholarships?category=medical-healthcare" style={{ color: 'var(--slate-600)' }}>Medical (MBBS / Nursing)</Link></li>
                       <li><Link to="/scholarships?category=minority-inclusion" style={{ color: 'var(--slate-600)' }}>Minority & SC/ST/OBC</Link></li>
                       <li><Link to="/scholarships?scholarship_type=Government" style={{ color: 'var(--slate-600)' }}>Government & NSP Schemes</Link></li>
+                      <li>
+                        <Link
+                          to="/scholarships?scholarship_type=Online"
+                          style={{
+                            color: 'var(--primary-600)',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          🌐 Online Scholarships
+                        </Link>
+                      </li>
                     </ul>
                   </div>
 
@@ -465,6 +479,20 @@ export default function Navbar({ onOpenSearch }) {
             </Link>
             <Link to="/scholarships?tab=live" style={{ color: 'var(--slate-800)', padding: '8px 0', borderBottom: '1px solid var(--slate-100)' }}>
               Live Scholarships
+            </Link>
+            <Link
+              to="/scholarships?scholarship_type=Online"
+              style={{
+                color: 'var(--primary-700)',
+                fontWeight: 700,
+                padding: '8px 0',
+                borderBottom: '1px solid var(--slate-100)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              🌐 Online Scholarships
             </Link>
             <Link to="/eligibility-checker" style={{ color: 'var(--accent-orange)', padding: '8px 0', borderBottom: '1px solid var(--slate-100)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} /> Check Eligibility Match

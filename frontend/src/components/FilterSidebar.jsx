@@ -22,8 +22,9 @@ export default function FilterSidebar({ filters, setFilters, onReset, totalCount
 
   const scholarshipTypes = [
     'All',
-    'Corporate/CSR',
+    'Online',
     'Government',
+    'Corporate/CSR',
     'Private/NGO',
     'International'
   ];

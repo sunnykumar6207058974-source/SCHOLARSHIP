@@ -348,6 +348,25 @@ export default function ScholarshipCard({ scholarship, onApply, onSaveToggle, on
             >
               <Bell size={14} /> Get Alert
             </button>
+          ) : scholarship.official_source_url && (scholarship.scholarship_type === 'Online' || scholarship.scholarship_type === 'Government') ? (
+            // Online / Government scholarships: open official portal directly
+            <a
+              href={scholarship.official_source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary btn-sm"
+              style={{
+                width: '100%',
+                fontSize: '0.84rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                textDecoration: 'none'
+              }}
+            >
+              Apply Online <ExternalLink size={13} />
+            </a>
           ) : (
             <button
               onClick={() => onApply && onApply(scholarship)}

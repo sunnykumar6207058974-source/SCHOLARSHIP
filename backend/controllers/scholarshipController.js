@@ -128,6 +128,7 @@ exports.getScholarships = async (req, res) => {
         s.award_amount, s.award_amount_value, s.deadline, s.is_always_open,
         s.status, s.scholarship_type, s.scheme_authority_type, s.education_level, s.state_domicile,
         s.brief_description, s.featured, s.created_at,
+        s.official_source_url,
         s.previous_year_cutoff, s.last_year_disbursed_amount, s.total_beneficiaries_last_year,
         s.expected_next_cycle, s.history_summary,
         c.name as category_name, c.slug as category_slug,
