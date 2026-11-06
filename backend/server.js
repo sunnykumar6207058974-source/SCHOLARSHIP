@@ -31,6 +31,23 @@ app.use(express.urlencoded({ extended: true }));
 // Serve sample static documents / logos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root Landing
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'EduScholar Backend API',
+    version: '1.0.0',
+    health: '/api/health',
+    endpoints: {
+      scholarships: '/api/scholarships',
+      featured: '/api/scholarships/featured',
+      categories: '/api/scholarships/categories',
+      eligibility: '/api/eligibility/check',
+      auth: '/api/auth'
+    }
+  });
+});
+
 // Health check & Info
 app.get('/api/health', (req, res) => {
   res.json({
