@@ -73,7 +73,7 @@ async function startServer() {
     // Ensure tables and seed data exist
     await seedDatabase();
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 EduScholar Backend API running on http://localhost:${PORT}`);
       console.log(`📡 Database Engine in use: [${db.getEngine().toUpperCase()}]`);
       console.log(`🔑 Demo Accounts:`);

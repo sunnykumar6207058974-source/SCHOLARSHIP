@@ -17,3 +17,4 @@ ENV NODE_ENV=production
 ENV USE_MYSQL=false
 
 CMD ["npm", "start"]
+
