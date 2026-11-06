@@ -23,9 +23,9 @@ exports.getScholarships = async (req, res) => {
 
     // Filter by tab
     if (tab === 'live') {
-      queryConditions.push("(s.status = 'live' AND (s.deadline >= DATE('now') OR s.is_always_open = 1 OR s.deadline IS NULL))");
+      queryConditions.push("(s.status = 'live' AND (s.deadline >= CURRENT_DATE OR s.is_always_open = 1 OR s.deadline IS NULL))");
     } else if (tab === 'history' || tab === 'closed') {
-      queryConditions.push("(s.status = 'closed' OR (s.deadline < DATE('now') AND s.is_always_open = 0))");
+      queryConditions.push("(s.status = 'closed' OR (s.deadline < CURRENT_DATE AND s.is_always_open = 0))");
     } else if (tab === 'upcoming') {
       queryConditions.push("s.status = 'upcoming'");
     } else if (tab === 'always_open') {

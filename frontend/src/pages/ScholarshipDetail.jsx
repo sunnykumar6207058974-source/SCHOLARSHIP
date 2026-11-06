@@ -123,11 +123,11 @@ export default function ScholarshipDetail() {
 
   return (
     <div style={{ backgroundColor: '#f8fafc', paddingBottom: '70px' }}>
-      
+
       {/* 1. Header Hero Banner */}
       <div style={{ backgroundColor: 'var(--primary-900)', color: 'var(--white)', paddingTop: '40px', paddingBottom: '45px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="container">
-          
+
           {/* Breadcrumbs */}
           <div style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '16px' }}>
             <Link to="/" style={{ color: '#cbd5e1' }}>Home</Link> / <Link to="/scholarships" style={{ color: '#cbd5e1' }}>Scholarships</Link> / <span style={{ color: 'var(--white)' }}>{scholarship.title}</span>
@@ -235,10 +235,10 @@ export default function ScholarshipDetail() {
       {/* 2. Main Content Body */}
       <div className="container" style={{ marginTop: '36px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px' }} className="detail-layout">
-          
+
           {/* Left Column: Full Information */}
           <div>
-            
+
             {/* Quick Highlights Bar */}
             <div style={{
               display: 'grid',
@@ -308,7 +308,7 @@ export default function ScholarshipDetail() {
               <h2 style={{ fontSize: '1.28rem', color: 'var(--primary-800)', fontWeight: 700, marginBottom: '14px', borderBottom: '2px solid var(--primary-50)', paddingBottom: '8px' }}>
                 Detailed Eligibility Criteria
               </h2>
-              
+
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.92rem', color: 'var(--slate-700)' }}>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                   <CheckCircle size={18} color="var(--accent-emerald)" style={{ marginTop: '2px', flexShrink: 0 }} />
@@ -591,7 +591,7 @@ export default function ScholarshipDetail() {
 
           {/* Right Column: Sidebar Widgets */}
           <div>
-            
+
             {/* Action Box */}
             <div className="card" style={{ padding: '24px', marginBottom: '24px', position: 'sticky', top: '90px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-800)', marginBottom: '14px' }}>

@@ -262,6 +262,36 @@ Yes! Set `USE_MYSQL=true` in `backend/.env` and configure your MySQL credentials
 
 ---
 
+## 🚢 Deployment Guide (Backend & Frontend)
+
+### Option 1: Deploy Backend on Render (Recommended)
+The repository includes a ready-to-use [`render.yaml`](file:///Users/sunnykumar/SCHOLARSHIP/render.yaml) blueprint:
+1. Push your repository to GitHub.
+2. Sign in to [Render.com](https://render.com) and click **New > Blueprint**.
+3. Select your repository `SCHOLARSHIP`.
+4. Render will auto-detect `render.yaml` and configure:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Environment Variables:** `USE_MYSQL=false`, `NODE_ENV=production`, auto-generated `JWT_SECRET`.
+5. Click **Apply**. Once deployed, Render provides a URL (e.g. `https://eduscholar-backend.onrender.com`).
+6. Copy that URL and update your frontend's `VITE_API_URL` environment variable on Vercel.
+
+### Option 2: Deploy Backend on Railway / Fly.io / Docker
+The repository includes a standalone [`backend/Dockerfile`](file:///Users/sunnykumar/SCHOLARSHIP/backend/Dockerfile) and [`backend/Procfile`](file:///Users/sunnykumar/SCHOLARSHIP/backend/Procfile):
+* **Railway:** Create a new project from your GitHub repo, set the root directory to `/backend`, and deploy.
+* **Docker:** Run `docker build -t eduscholar-backend ./backend && docker run -p 5005:5005 eduscholar-backend`.
+
+### Option 3: Connect Deployed Backend to Vercel Frontend
+In your Vercel Project Settings for the frontend:
+1. Go to **Settings > Environment Variables**.
+2. Add:
+   - **Key:** `VITE_API_URL`
+   - **Value:** `https://your-backend-service.onrender.com/api`
+3. Trigger a redeploy of the frontend.
+
+---
+
 ## 📄 License & Evaluation Note
 
 Developed for academic presentation and college project evaluation. Designed to showcase production-grade full-stack architecture, clean code practices, deterministic rule-based algorithms, and intuitive UX.

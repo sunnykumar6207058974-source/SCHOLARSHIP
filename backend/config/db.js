@@ -20,8 +20,8 @@ const MYSQL_CONFIG = {
 };
 
 async function initDatabase() {
-  // 1. Try connecting to MySQL if requested or possible
-  if (process.env.USE_MYSQL === 'true' || process.env.DB_PASSWORD !== undefined) {
+  // 1. Try connecting to MySQL if explicitly enabled
+  if (process.env.USE_MYSQL === 'true') {
     try {
       console.log('Attempting MySQL connection to', MYSQL_CONFIG.host, 'user:', MYSQL_CONFIG.user);
       // First check connection to server (without DB name in case DB not created yet)
@@ -49,6 +49,10 @@ async function initDatabase() {
   // 2. SQLite mode (persisted to backend/database/eduscholar.sqlite)
   try {
     const dbPath = path.join(__dirname, '../database/eduscholar.sqlite');
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
     sqliteDb = new Database(dbPath);
     sqliteDb.pragma('journal_mode = WAL');
     sqliteDb.pragma('foreign_keys = ON');

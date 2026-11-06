@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: eduscholar-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: USE_MYSQL
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true

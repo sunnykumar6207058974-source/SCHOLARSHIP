@@ -240,20 +240,27 @@ async function setupTables() {
   `);
 
   // Incremental migration for existing databases
-  const alterColumns = [
-    "ALTER TABLE scholarships ADD COLUMN scheme_authority_type VARCHAR(50) DEFAULT 'Central Government'",
-    "ALTER TABLE scholarships ADD COLUMN previous_year_cutoff VARCHAR(100)",
-    "ALTER TABLE scholarships ADD COLUMN last_year_disbursed_amount VARCHAR(100)",
-    "ALTER TABLE scholarships ADD COLUMN total_beneficiaries_last_year INT DEFAULT 0",
-    "ALTER TABLE scholarships ADD COLUMN expected_next_cycle VARCHAR(100)",
-    "ALTER TABLE scholarships ADD COLUMN history_summary TEXT"
-  ];
-  for (const alterSql of alterColumns) {
-    try {
-      await db.query(alterSql);
-    } catch (e) {
-      // Column may already exist
+  try {
+    const colInfoQuery = engine === 'mysql' ? 'SHOW COLUMNS FROM scholarships' : 'PRAGMA table_info(scholarships)';
+    const { rows: existingColRows } = await db.query(colInfoQuery);
+    const existingCols = new Set(existingColRows.map(r => (r.Field || r.name || '').toLowerCase()));
+
+    const columnsToAdd = [
+      { name: 'scheme_authority_type', sql: "ALTER TABLE scholarships ADD COLUMN scheme_authority_type VARCHAR(50) DEFAULT 'Central Government'" },
+      { name: 'previous_year_cutoff', sql: "ALTER TABLE scholarships ADD COLUMN previous_year_cutoff VARCHAR(100)" },
+      { name: 'last_year_disbursed_amount', sql: "ALTER TABLE scholarships ADD COLUMN last_year_disbursed_amount VARCHAR(100)" },
+      { name: 'total_beneficiaries_last_year', sql: "ALTER TABLE scholarships ADD COLUMN total_beneficiaries_last_year INT DEFAULT 0" },
+      { name: 'expected_next_cycle', sql: "ALTER TABLE scholarships ADD COLUMN expected_next_cycle VARCHAR(100)" },
+      { name: 'history_summary', sql: "ALTER TABLE scholarships ADD COLUMN history_summary TEXT" }
+    ];
+
+    for (const col of columnsToAdd) {
+      if (!existingCols.has(col.name.toLowerCase())) {
+        await db.query(col.sql);
+      }
     }
+  } catch (err) {
+    // Migration check failure fallback
   }
 
   console.log('✅ Tables created and migrated successfully.');

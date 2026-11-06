@@ -786,8 +786,7 @@ export default function AdminDashboard() {
                     className="form-input"
                     value={newScholarship.deadline}
                     onChange={(e) => setNewScholarship({ ...newScholarship, deadline: e.target.value })}
-                  >
-                  </input>
+                  />
                 </div>
 
                 <div className="form-group">
