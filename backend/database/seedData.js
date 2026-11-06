@@ -949,28 +949,52 @@ const seedResults = [
 
 const seedVideos = [
   {
-    title: 'How to Fill Online Scholarship Applications Step-by-Step Without Mistakes',
-    duration: '12:45',
+    title: 'How to Fill Online Scholarship Applications Step-by-Step (NSP OTR Guide)',
+    duration: '14:32',
     thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
-    youtubeId: 'dQw4w9WgXcQ',
-    views: '125K views',
-    channel: 'EduScholar Masterclass'
+    youtubeId: 'oUAbfxbAxTk',
+    views: '185K views',
+    channel: 'EduScholar Guides'
   },
   {
     title: 'NSP Portal Document Upload Guide: Resize, Format, and Avoid Rejections',
-    duration: '08:20',
+    duration: '09:45',
     thumbnail: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80',
-    youtubeId: 'dQw4w9WgXcQ',
-    views: '84K views',
+    youtubeId: 'imp6ioIZ7jM',
+    views: '140K views',
     channel: 'Scholarship Alerts India'
   },
   {
-    title: 'How to Crack Scholarship Personal Interviews: Common Questions Answered',
-    duration: '15:10',
+    title: 'How to Crack Scholarship Personal Interviews: Top Questions Answered',
+    duration: '11:28',
     thumbnail: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
-    youtubeId: 'dQw4w9WgXcQ',
-    views: '210K views',
+    youtubeId: 'NRf0jGTTv-A',
+    views: '290K views',
     channel: 'Career Guidance Hub'
+  },
+  {
+    title: 'National Scholarship Portal (NSP) Fresh & Renewal Application Walkthrough',
+    duration: '13:15',
+    thumbnail: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+    youtubeId: 'haPL-Tew3Mk',
+    views: '112K views',
+    channel: 'EduTech India'
+  },
+  {
+    title: 'Scholarship Interview Preparation: How to Introduce Yourself & Answer Questions',
+    duration: '15:40',
+    thumbnail: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+    youtubeId: 'mZw-085ZlaA',
+    views: '175K views',
+    channel: 'Study Abroad & Scholars'
+  },
+  {
+    title: 'Top Mistakes that Lead to Scholarship Rejection & How to Avoid Them',
+    duration: '10:20',
+    thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+    youtubeId: '58_qGVrzrbk',
+    views: '95K views',
+    channel: 'Student Advisory Cell'
   }
 ];
 

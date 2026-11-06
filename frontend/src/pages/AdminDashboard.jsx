@@ -207,7 +207,7 @@ export default function AdminDashboard() {
   return (
     <div style={{ backgroundColor: '#f8fafc', padding: '40px 0 80px 0', minHeight: '85vh' }}>
       <div className="container">
-        
+
         {/* Admin Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -831,7 +831,7 @@ export default function AdminDashboard() {
                   <h4 style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--primary-800)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <History size={16} color="#0284c7" /> Historical Trends & Previous Year Archive Data (Optional)
                   </h4>
-                  
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div className="form-group">
                       <label className="form-label">Previous Year Cutoff Score / %</label>
