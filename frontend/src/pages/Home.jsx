@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -42,6 +42,8 @@ export default function Home() {
   const [heroSearch, setHeroSearch] = useState('');
   const [heroEducation, setHeroEducation] = useState('All');
   const [heroState, setHeroState] = useState('All India');
+  const [searchError, setSearchError] = useState(false);
+  const heroInputRef = useRef(null);
 
   // Application & Notify Modals
   const [selectedScholarship, setSelectedScholarship] = useState(null);
@@ -66,8 +68,16 @@ export default function Home() {
 
   const handleHeroSearchSubmit = (e) => {
     e.preventDefault();
+    if (!heroSearch || !heroSearch.trim()) {
+      setSearchError(true);
+      if (heroInputRef.current) {
+        heroInputRef.current.focus();
+      }
+      return;
+    }
+    setSearchError(false);
     const params = new URLSearchParams();
-    if (heroSearch.trim()) params.append('search', heroSearch.trim());
+    params.append('search', heroSearch.trim());
     if (heroEducation !== 'All') params.append('education_level', heroEducation);
     if (heroState !== 'All India') params.append('state', heroState);
     navigate(`/scholarships?${params.toString()}`);
@@ -166,21 +176,51 @@ export default function Home() {
                 {/* Search Text */}
                 <div style={{ position: 'relative' }}>
                   <input
+                    ref={heroInputRef}
                     type="text"
                     value={heroSearch}
-                    onChange={(e) => setHeroSearch(e.target.value)}
+                    onChange={(e) => {
+                      setHeroSearch(e.target.value);
+                      if (searchError && e.target.value.trim()) {
+                        setSearchError(false);
+                      }
+                    }}
                     placeholder="Search by name, provider..."
                     style={{
                       width: '100%',
                       padding: '12px 14px 12px 38px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1.5px solid var(--slate-200)',
+                      border: searchError ? '2px solid #ef4444' : '1.5px solid var(--slate-200)',
+                      boxShadow: searchError ? '0 0 0 3px rgba(239, 68, 68, 0.2)' : 'none',
                       color: 'var(--slate-800)',
                       fontSize: '0.92rem',
-                      outline: 'none'
+                      outline: 'none',
+                      transition: 'border-color 0.15s, box-shadow 0.15s'
                     }}
                   />
-                  <Search size={17} color="var(--slate-400)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <Search size={17} color={searchError ? '#ef4444' : 'var(--slate-400)'} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                  {searchError && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 6px)',
+                      left: '0',
+                      backgroundColor: '#fef2f2',
+                      color: '#b91c1c',
+                      border: '1px solid #fecaca',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                      zIndex: 20,
+                      whiteSpace: 'nowrap'
+                    }}>
+                      Please type something before searching
+                    </div>
+                  )}
                 </div>
 
                 {/* Education Dropdown */}
