@@ -62,20 +62,20 @@ export default function Navbar({ onOpenSearch }) {
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'var(--white)', boxShadow: '0 2px 10px rgba(15, 44, 89, 0.08)' }}>
       {/* Top Bar */}
-      <div style={{ backgroundColor: 'var(--primary-900)', color: '#94a3b8', fontSize: '0.8rem', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div className="top-bar-strip" style={{ backgroundColor: 'var(--primary-900)', color: '#94a3b8', fontSize: '0.8rem', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="container top-bar-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="top-bar-left" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <Phone size={13} color="var(--accent-orange)" />
-              Student Support Helpline: <strong style={{ color: '#f1f5f9' }}>1800-102-3344</strong> (Mon-Sat 10AM - 6PM)
+              <span className="helpline-label">Student Support Helpline:</span> <strong style={{ color: '#f1f5f9' }}>1800-102-3344</strong> <span className="helpline-timing">(Mon-Sat 10AM - 6PM)</span>
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span className="top-bar-email" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <Mail size={13} color="var(--accent-orange)" />
               <span style={{ color: '#f1f5f9' }}>help@eduscholar.org</span>
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Link to="/results" style={{ color: '#cbd5e1', hover: { color: 'var(--white)' } }}>Scholarship Results</Link>
+          <div className="top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Link to="/results" style={{ color: '#cbd5e1' }}>Scholarship Results</Link>
             <span style={{ opacity: 0.3 }}>|</span>
             <Link to="/contact" style={{ color: '#cbd5e1' }}>Contact Us</Link>
             {isAdmin && (
@@ -91,30 +91,31 @@ export default function Navbar({ onOpenSearch }) {
       </div>
 
       {/* Main Navbar */}
-      <nav style={{ backgroundColor: 'var(--white)', padding: '12px 0' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+      <nav style={{ backgroundColor: 'var(--white)', padding: '10px 0' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
           {/* Brand Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
             <div style={{
               background: 'linear-gradient(135deg, var(--primary-800) 0%, var(--primary-600) 100%)',
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
+              width: '38px',
+              height: '38px',
+              borderRadius: '9px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'var(--white)',
-              boxShadow: '0 4px 10px rgba(15, 44, 89, 0.25)'
+              boxShadow: '0 4px 10px rgba(15, 44, 89, 0.25)',
+              flexShrink: 0
             }}>
-              <GraduationCap size={26} color="#ffffff" />
+              <GraduationCap size={22} color="#ffffff" />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.45rem', fontWeight: 800, color: 'var(--primary-800)', letterSpacing: '-0.02em' }}>Edu</span>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.45rem', fontWeight: 800, color: 'var(--accent-orange)', letterSpacing: '-0.02em' }}>Scholar</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary-800)', letterSpacing: '-0.02em' }}>Edu</span>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-orange)', letterSpacing: '-0.02em' }}>Scholar</span>
               </div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--slate-500)', letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '-4px' }}>
+              <div className="brand-subtitle" style={{ fontSize: '0.64rem', fontWeight: 600, color: 'var(--slate-500)', letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '-3px' }}>
                 Scholarship Discovery Portal
               </div>
             </div>
@@ -286,33 +287,35 @@ export default function Navbar({ onOpenSearch }) {
           </div>
 
           {/* Right Header Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }} className="right-header-actions">
             
             {/* Instant Search Button */}
             <button
               onClick={onOpenSearch}
+              className="nav-search-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 backgroundColor: 'var(--slate-100)',
                 color: 'var(--slate-600)',
-                padding: '8px 16px',
+                padding: '8px 14px',
                 borderRadius: 'var(--radius-full)',
                 fontSize: '0.88rem',
                 border: '1px solid var(--slate-200)',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                flexShrink: 0
               }}
               title="Search scholarships, articles, providers"
             >
               <Search size={16} color="var(--slate-500)" />
               <span className="search-text-desktop">Search Scholarships...</span>
-              <kbd style={{ backgroundColor: 'var(--white)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', color: 'var(--slate-400)', border: '1px solid var(--slate-200)' }}>⌘K</kbd>
+              <kbd className="search-kbd" style={{ backgroundColor: 'var(--white)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', color: 'var(--slate-400)', border: '1px solid var(--slate-200)' }}>⌘K</kbd>
             </button>
 
             {/* Auth Buttons or User Avatar */}
             {isAuthenticated ? (
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   style={{
@@ -440,11 +443,11 @@ export default function Navbar({ onOpenSearch }) {
                 )}
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Link to="/login" className="btn btn-outline btn-sm">
+              <div className="nav-auth-buttons" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                <Link to="/login" className="btn btn-outline btn-sm nav-login-btn">
                   Log In
                 </Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
+                <Link to="/register" className="btn btn-primary btn-sm nav-register-btn">
                   Register
                 </Link>
               </div>
@@ -453,11 +456,11 @@ export default function Navbar({ onOpenSearch }) {
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              style={{ display: 'block', padding: '6px', color: 'var(--primary-800)' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', color: 'var(--primary-800)', background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
               className="mobile-nav-toggle"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
           </div>
@@ -473,6 +476,16 @@ export default function Navbar({ onOpenSearch }) {
           boxShadow: 'var(--shadow-lg)',
           animation: 'fadeInDown 0.2s ease-out'
         }}>
+          {!isAuthenticated && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--slate-100)' }}>
+              <Link to="/login" className="btn btn-outline btn-sm" style={{ width: '100%', textAlign: 'center' }}>
+                Log In
+              </Link>
+              <Link to="/register" className="btn btn-primary btn-sm" style={{ width: '100%', textAlign: 'center' }}>
+                Register Free
+              </Link>
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', fontWeight: 600 }}>
             <Link to="/scholarships" style={{ color: 'var(--slate-800)', padding: '8px 0', borderBottom: '1px solid var(--slate-100)' }}>
               All Scholarships
@@ -532,6 +545,39 @@ export default function Navbar({ onOpenSearch }) {
           }
           .search-text-desktop, .user-name-desktop {
             display: none;
+          }
+        }
+        @media (max-width: 768px) {
+          .top-bar-right, .top-bar-email, .helpline-timing {
+            display: none !important;
+          }
+          .top-bar-container {
+            justify-content: center !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .brand-subtitle, .search-kbd {
+            display: none !important;
+          }
+          .helpline-label {
+            display: none !important;
+          }
+          .nav-search-btn {
+            padding: 6px 9px !important;
+            gap: 0 !important;
+          }
+          .nav-auth-buttons {
+            gap: 4px !important;
+          }
+          .nav-login-btn, .nav-register-btn {
+            padding: 5px 9px !important;
+            font-size: 0.78rem !important;
+            white-space: nowrap !important;
+          }
+        }
+        @media (max-width: 375px) {
+          .nav-login-btn {
+            display: none !important;
           }
         }
       `}</style>
