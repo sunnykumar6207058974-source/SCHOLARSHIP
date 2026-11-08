@@ -548,18 +548,12 @@ export default function Navbar({ onOpenSearch }) {
           }
         }
         @media (max-width: 768px) {
-          .top-bar-right, .top-bar-email, .helpline-timing {
+          .top-bar-strip {
             display: none !important;
-          }
-          .top-bar-container {
-            justify-content: center !important;
           }
         }
         @media (max-width: 640px) {
           .brand-subtitle, .search-kbd {
-            display: none !important;
-          }
-          .helpline-label {
             display: none !important;
           }
           .nav-search-btn {
