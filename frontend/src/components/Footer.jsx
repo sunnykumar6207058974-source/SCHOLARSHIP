@@ -22,15 +22,15 @@ export default function Footer() {
       <div className="container">
         
         {/* Top Newsletter & Mission Bar */}
-        <div style={{
+        <div className="footer-newsletter-card" style={{
           backgroundColor: 'rgba(255, 255, 255, 0.04)',
           borderRadius: 'var(--radius-lg)',
           padding: '30px',
           marginBottom: '50px',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '30px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '24px',
           alignItems: 'center'
         }}>
           <div>
@@ -50,7 +50,7 @@ export default function Footer() {
                 <span>Thank you! You are now subscribed to verified scholarship alerts.</span>
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '10px', maxWidth: '480px' }}>
+              <form onSubmit={handleSubscribe} className="footer-subscribe-form" style={{ display: 'flex', gap: '10px', maxWidth: '480px', width: '100%' }}>
                 <input
                   type="email"
                   value={email}
@@ -59,6 +59,8 @@ export default function Footer() {
                   required
                   style={{
                     flex: 1,
+                    minWidth: 0,
+                    width: '100%',
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid rgba(255,255,255,0.2)',
@@ -70,8 +72,16 @@ export default function Footer() {
                 />
                 <button
                   type="submit"
-                  className="btn btn-primary"
-                  style={{ padding: '12px 20px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  className="btn btn-primary footer-subscribe-btn"
+                  style={{
+                    padding: '12px 20px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
                 >
                   <Send size={16} /> Subscribe
                 </button>
@@ -182,6 +192,25 @@ export default function Footer() {
         </div>
 
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .footer-newsletter-card {
+            padding: 20px 16px !important;
+            margin-bottom: 35px !important;
+          }
+          .footer-subscribe-form {
+            flex-direction: column !important;
+            gap: 10px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .footer-subscribe-btn {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 }
